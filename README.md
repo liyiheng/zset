@@ -1,6 +1,5 @@
 # zset
-Sorted set in golang<br>
-Rewrite sorted set in Redis with golang.
+Implementating sorted set in Redis with golang.
 
 ## Usage
 
