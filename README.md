@@ -12,6 +12,7 @@ s.Add(88, 1003, "test3")
 s.Add(100, 1004, "liyiheng")
 s.Add(99, 1005, "test4")
 s.Add(44, 1006, "test5")
+// update data
 s.Add(44, 1001, "test1")
 
 // get rank by id
