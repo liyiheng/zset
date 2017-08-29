@@ -1,8 +1,12 @@
 # zset
 Implementing sorted set in Redis with golang.
 
-## Usage
+## Installation
+```bash
+go get -u github.com/XanthusL/zset
+```
 
+## Usage
 ```go
 s := zset.New()
 // add data
