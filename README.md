@@ -23,3 +23,15 @@ id, score, extra := s.GetDataByRank(0, true)
 // delete data by id
 s.Delete(1001)
 ```
+
+## Benchmark
+
+```bash
+go test -test.bench=".*"
+BenchmarkSortedSet_Add-4                 1000000              4130 ns/op
+BenchmarkSortedSet_GetRank-4              500000              3629 ns/op
+BenchmarkSortedSet_GetDataByRank-4      10000000               112 ns/op
+PASS
+ok      zset    14.178s
+
+```

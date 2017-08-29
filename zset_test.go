@@ -1,12 +1,17 @@
 package zset_test
 
 import (
+	"math/rand"
 	"testing"
 	"zset"
 )
 
+var s *zset.SortedSet
+
+func init() {
+	s = zset.New()
+}
 func TestNew(t *testing.T) {
-	s := zset.New()
 	if s == nil {
 		t.Failed()
 	}
@@ -30,4 +35,35 @@ func TestNew(t *testing.T) {
 	t.Log("GetData[UNREVERSE] Rank:", 0, "ID:", id, "Score:", score, "Extra:", extra)
 	s.Delete(1001)
 
+}
+
+func BenchmarkSortedSet_Add(b *testing.B) {
+	b.StopTimer()
+	// data initialization
+	scores := make([]float64, b.N)
+	IDs := make([]int64, b.N)
+	for i := range IDs {
+		scores[i] = rand.Float64() + float64(rand.Int31n(99))
+		IDs[i] = int64(i) + 100000
+	}
+	// BCE
+	_ = scores[:b.N]
+	_ = IDs[:b.N]
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		s.Add(scores[i], IDs[i], nil)
+	}
+}
+
+func BenchmarkSortedSet_GetRank(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s.GetRank(100000+int64(i), true)
+	}
+}
+
+func BenchmarkSortedSet_GetDataByRank(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s.GetDataByRank(int64(i), true)
+	}
 }
