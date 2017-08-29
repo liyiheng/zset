@@ -57,13 +57,15 @@ func BenchmarkSortedSet_Add(b *testing.B) {
 }
 
 func BenchmarkSortedSet_GetRank(b *testing.B) {
+	l := s.Length()
 	for i := 0; i < b.N; i++ {
-		s.GetRank(100000+int64(i), true)
+		s.GetRank(100000+int64(i)%l, true)
 	}
 }
 
 func BenchmarkSortedSet_GetDataByRank(b *testing.B) {
+	l := s.Length()
 	for i := 0; i < b.N; i++ {
-		s.GetDataByRank(int64(i), true)
+		s.GetDataByRank(int64(i)%l, true)
 	}
 }

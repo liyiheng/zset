@@ -28,10 +28,9 @@ s.Delete(1001)
 
 ```bash
 go test -test.bench=".*"
-BenchmarkSortedSet_Add-4                 1000000              4130 ns/op
-BenchmarkSortedSet_GetRank-4              500000              3629 ns/op
-BenchmarkSortedSet_GetDataByRank-4      10000000               112 ns/op
+BenchmarkSortedSet_Add-4                 1000000              4100 ns/op
+BenchmarkSortedSet_GetRank-4              500000              3683 ns/op
+BenchmarkSortedSet_GetDataByRank-4       2000000               714 ns/op
 PASS
-ok      zset    14.178s
-
+ok      zset    12.602s
 ```
