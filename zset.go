@@ -2,7 +2,6 @@ package zset
 
 import (
 	"math/rand"
-	"sync"
 )
 
 /*================================== Redis skipList APIs =====================================
@@ -63,7 +62,6 @@ type (
 		level  int16         // 层数最多的节点的层数
 	}
 	SortedSet struct {
-		sync.RWMutex
 		dict map[int64]*obj
 		zsl  *skipList
 	}
@@ -524,6 +522,8 @@ func (zsl *skipList) zslGetElementByRank(rank uint64) *skipListNode {
 /*-----------------------------------------------------------------------------
  * Common sorted set API
  *----------------------------------------------------------------------------*/
+
+// Create a new SortedSet and return its pointer
 func New() *SortedSet {
 	s := &SortedSet{
 		dict: make(map[int64]*obj),
@@ -533,14 +533,10 @@ func New() *SortedSet {
 }
 
 func (z *SortedSet) Length() int64 {
-	z.RLock()
-	l := z.zsl.length
-	z.RUnlock()
-	return l
+	return z.zsl.length
 }
 
 func (z *SortedSet) Add(score float64, key int64, dat interface{}) {
-	z.Lock()
 	v, ok := z.dict[key]
 	z.dict[key] = &obj{attachment: dat, key: key, score: score}
 	if ok {
@@ -552,12 +548,9 @@ func (z *SortedSet) Add(score float64, key int64, dat interface{}) {
 	} else {
 		z.zsl.zslInsert(score, key)
 	}
-	z.Unlock()
 }
 
 func (z *SortedSet) Delete(key int64) bool {
-	z.Lock()
-	defer z.Unlock()
 	v, ok := z.dict[key]
 	if ok {
 		z.zsl.zslDelete(v.score, key, nil)
@@ -568,8 +561,6 @@ func (z *SortedSet) Delete(key int64) bool {
 }
 
 func (z *SortedSet) GetRank(key int64, reverse bool) (int64, float64, interface{}) {
-	z.RLock()
-	defer z.RUnlock()
 	v, ok := z.dict[key]
 	if !ok {
 		return -1, 0, nil
@@ -591,14 +582,12 @@ func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (int64, float64, int
 	if rank < 0 {
 		return 0, 0, nil
 	}
-	z.RLock()
-	defer z.RUnlock()
 	if rank > z.zsl.length {
 		return 0, 0, nil
 	}
 	if reverse {
 		rank = z.zsl.length - rank
-	}else{
+	} else {
 		rank++
 	}
 	n := z.zsl.zslGetElementByRank(uint64(rank))

@@ -7,6 +7,8 @@ go get -u github.com/XanthusL/zset
 ```
 
 ## Usage
+Removed RWLock in the SortedSet. 
+Just implement it yourself if you need.
 ```go
 s := zset.New()
 // add data
@@ -32,9 +34,9 @@ s.Delete(1001)
 
 ```bash
 go test -test.bench=".*"
-BenchmarkSortedSet_Add-4                 1000000              4100 ns/op
-BenchmarkSortedSet_GetRank-4              500000              3683 ns/op
-BenchmarkSortedSet_GetDataByRank-4       2000000               714 ns/op
+BenchmarkSortedSet_Add-4                 1000000              4121 ns/op
+BenchmarkSortedSet_GetRank-4              500000              3592 ns/op
+BenchmarkSortedSet_GetDataByRank-4       2000000               667 ns/op
 PASS
-ok      zset    12.602s
+ok      zset    11.365s
 ```
