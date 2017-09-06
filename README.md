@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/XanthusL/zset)](https://goreportcard.com/report/github.com/XanthusL/zset)
 # zset
 Implementing sorted set in Redis with golang.
 

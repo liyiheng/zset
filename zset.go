@@ -61,7 +61,7 @@ type (
 		length int64         // 节点个数
 		level  int16         // 层数最多的节点的层数
 	}
-	// The exported sorted set we can use
+	// SortedSet is the final exported sorted set we can use
 	SortedSet struct {
 		dict map[int64]*obj
 		zsl  *skipList
