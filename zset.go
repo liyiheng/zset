@@ -536,7 +536,7 @@ func (z *SortedSet) Length() int64 {
 	return z.zsl.length
 }
 
-func (z *SortedSet) Add(score float64, key int64, dat interface{}) {
+func (z *SortedSet) Set(score float64, key int64, dat interface{}) {
 	v, ok := z.dict[key]
 	z.dict[key] = &obj{attachment: dat, key: key, score: score}
 	if ok {
