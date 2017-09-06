@@ -1,16 +1,16 @@
-package zset_test
+package zset
 
 import (
 	"math/rand"
 	"testing"
-	"zset"
 )
 
-var s *zset.SortedSet
+var s *SortedSet
 
 func init() {
-	s = zset.New()
+	s = New()
 }
+
 func TestNew(t *testing.T) {
 	if s == nil {
 		t.Failed()
@@ -29,12 +29,34 @@ func TestNew(t *testing.T) {
 	} else {
 		t.Error("Key:", 1004, "Rank:", rank, "Score:", score, "Extra:", extra)
 	}
+	rank, score, extra = s.GetRank(1001, false)
+	if rank == 0 {
+		t.Log("Key:", 1001, "Rank:", rank, "Score:", score, "Extra:", extra)
+	} else {
+		t.Error("Key:", 1001, "Rank:", rank, "Score:", score, "Extra:", extra)
+	}
+	rank, score, extra = s.GetRank(-1, false)
+	if rank == -1 {
+		t.Log("Key:", -1, "Rank:", rank, "Score:", score, "Extra:", extra)
+	} else {
+		t.Error("Key:", -1, "Rank:", rank, "Score:", score, "Extra:", extra)
+	}
+
 	id, score, extra := s.GetDataByRank(0, true)
 	t.Log("GetData[REVERSE] Rank:", 0, "ID:", id, "Score:", score, "Extra:", extra)
 	id, score, extra = s.GetDataByRank(0, false)
 	t.Log("GetData[UNREVERSE] Rank:", 0, "ID:", id, "Score:", score, "Extra:", extra)
+	id, score, extra = s.GetDataByRank(9999, true)
+	if extra != nil {
+		t.Error("GetDataByRank is not nil")
+	}
+	if s.Length() != 6 {
+		t.Error("Rank Data Size is wrong")
+	}
 	s.Delete(1001)
-
+	if s.Length() != 5 {
+		t.Error("Rank Data Size is wrong")
+	}
 }
 
 func BenchmarkSortedSet_Add(b *testing.B) {

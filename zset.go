@@ -240,7 +240,7 @@ func (zsl *skipList) zslDeleteNode(x *skipListNode, update []*skipListNode) {
  * it is not freed (but just unlinked) and *node is set to the node pointer,
  * so that it is possible for the caller to reuse the node (including the
  * referenced SDS string at node->obj). */
-func (zsl *skipList) zslDelete(score float64, id int64, node *skipListNode) int {
+func (zsl *skipList) zslDelete(score float64, id int64) int {
 	update := make([]*skipListNode, ZSKIPLIST_MAXLEVEL)
 	x := zsl.header
 	for i := zsl.level - 1; i >= 0; i-- {
@@ -257,11 +257,6 @@ func (zsl *skipList) zslDelete(score float64, id int64, node *skipListNode) int 
 	x = x.level[0].forward
 	if x != nil && score == x.score && x.objID == id {
 		zsl.zslDeleteNode(x, update)
-		if node == nil {
-			zslFreeNode(x)
-		} else {
-			node = x
-		}
 		return 1
 	}
 	return 0 /* not found */
@@ -500,7 +495,7 @@ func (zsl *skipList) zslGetRank(score float64, key int64) int64 {
 			return int64(rank)
 		}
 	}
-	return -1
+	return 0
 }
 
 /* Finds an element by its rank. The rank argument needs to be 1-based. */
@@ -542,7 +537,7 @@ func (z *SortedSet) Set(score float64, key int64, dat interface{}) {
 	if ok {
 		/* Remove and re-insert when score changes. */
 		if score != v.score {
-			z.zsl.zslDelete(v.score, key, nil)
+			z.zsl.zslDelete(v.score, key)
 			z.zsl.zslInsert(score, key)
 		}
 	} else {
@@ -553,7 +548,7 @@ func (z *SortedSet) Set(score float64, key int64, dat interface{}) {
 func (z *SortedSet) Delete(key int64) bool {
 	v, ok := z.dict[key]
 	if ok {
-		z.zsl.zslDelete(v.score, key, nil)
+		z.zsl.zslDelete(v.score, key)
 		delete(z.dict, key)
 		return true
 	}
@@ -566,9 +561,6 @@ func (z *SortedSet) GetRank(key int64, reverse bool) (int64, float64, interface{
 		return -1, 0, nil
 	}
 	r := z.zsl.zslGetRank(v.score, key)
-	if r < 0 {
-		return r, 0, nil
-	}
 	if reverse {
 		r = z.zsl.length - r
 	} else {
@@ -579,10 +571,7 @@ func (z *SortedSet) GetRank(key int64, reverse bool) (int64, float64, interface{
 }
 
 func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (int64, float64, interface{}) {
-	if rank < 0 {
-		return 0, 0, nil
-	}
-	if rank > z.zsl.length {
+	if rank < 0 || rank > z.zsl.length {
 		return 0, 0, nil
 	}
 	if reverse {
