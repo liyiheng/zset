@@ -57,6 +57,8 @@ func TestNew(t *testing.T) {
 	if s.Length() != 5 {
 		t.Error("Rank Data Size is wrong")
 	}
+	d, ok := s.GetData(1004)
+	t.Log(d, ok)
 }
 
 func BenchmarkSortedSet_Add(b *testing.B) {

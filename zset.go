@@ -6,11 +6,11 @@ import (
 
 /*================================== Redis skipList APIs =====================================
  *	zslCreate
- *  创建一个新的跳跃表。	O(1)
+ *	创建一个新的跳跃表。	O(1)
  *	zslFree
- *  释放给定跳跃表，以及表中包含的所有节点。	O(N) ， N 为跳跃表的长度。
+ *	释放给定跳跃表，以及表中包含的所有节点。	O(N) ， N 为跳跃表的长度。
  *	zslInsert
- *  将包含给定成员和分值的新节点添加到跳跃表中。	平均 O(\log N) ，最坏 O(N) ， N 为跳跃表长度。
+ *	将包含给定成员和分值的新节点添加到跳跃表中。	平均 O(\log N) ，最坏 O(N) ， N 为跳跃表长度。
  *	zslDelete
  *	删除跳跃表中包含给定成员和分值的节点。	平均 O(\log N) ，最坏 O(N) ， N 为跳跃表长度。
  *	zslGetRank
@@ -577,6 +577,15 @@ func (z *SortedSet) GetRank(key int64, reverse bool) (int64, float64, interface{
 	}
 	return int64(r), v.score, v.attachment
 
+}
+
+// GetData returns data stored in the map by its key
+func (z *SortedSet) GetData(key int64) (interface{}, bool) {
+	o, ok := z.dict[key]
+	if !ok {
+		return nil, false
+	}
+	return o.attachment, true
 }
 
 // GetDataByRank returns the id,score and extra data of an element which

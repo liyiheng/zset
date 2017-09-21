@@ -26,6 +26,8 @@ s.Set(44, 1001, "test1")
 rank, score, extra := s.GetRank(1004, false)
 // get data by rank
 id, score, extra := s.GetDataByRank(0, true)
+// get data by id
+dat, ok := s.GetData(1001)
 
 // delete data by id
 s.Delete(1001)
