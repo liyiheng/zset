@@ -103,31 +103,6 @@ func zslCreate() *skipList {
 	}
 }
 
-/* Free the specified skiplist node. The referenced SDS string representation
- * of the element is freed too, unless node->obj is set to NULL before calling
- * this function. */
-// deprecated
-func zslFreeNode(node *skipListNode) {
-	// free node.obj
-	// free node
-	node.backward = nil
-	node.level = nil
-}
-
-/* Free a whole skiplist. */
-// deprecated
-func (zsl *skipList) Free() {
-	node := zsl.header.level[0].forward
-	var next *skipListNode
-	//zfree(zsl->header);
-	for node != nil {
-		next = node.level[0].forward
-		zslFreeNode(node)
-		node = next
-	}
-	//zfree(zsl);
-}
-
 const _ZSKIPLIST_P = 0.25 /* Skiplist P = 1/4 */
 
 /* Returns a random level for the new skiplist node we are going to create.
@@ -389,7 +364,9 @@ func (zsl *skipList) zslDeleteRangeByScore(ran *zrangespec, dict map[int64]*obj)
 		next := x.level[0].forward
 		zsl.zslDeleteNode(x, update)
 		delete(dict, x.objID)
-		zslFreeNode(x) /* Here is where x->obj is actually released. */
+		// Here is where x->obj is actually released.
+		// And golang has GC, don't need to free manually anymore
+		//zslFreeNode(x)
 		removed++
 		x = next
 	}
@@ -416,7 +393,6 @@ func (zsl *skipList) zslDeleteRangeByLex(ran *zlexrangespec, dict map[int64]*obj
 		next := x.level[0].forward
 		zsl.zslDeleteNode(x, update)
 		delete(dict, x.objID)
-		zslFreeNode(x) /* Here is where x->obj is actually released. */
 		removed++
 		x = next
 	}
@@ -467,7 +443,6 @@ func (zsl *skipList) zslDeleteRangeByRank(start, end uint64, dict map[int64]*obj
 		next := x.level[0].forward
 		zsl.zslDeleteNode(x, update)
 		delete(dict, x.objID)
-		zslFreeNode(x)
 		removed++
 		traversed++
 		x = next
