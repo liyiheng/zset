@@ -9,7 +9,7 @@ go get -u github.com/XanthusL/zset
 
 ## Usage
 Removed RWLock in the SortedSet. 
-Just implement it yourself if you need.
+Just implement it yourself if needed.
 ```go
 s := zset.New()
 // add data
