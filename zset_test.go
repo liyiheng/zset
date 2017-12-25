@@ -46,7 +46,7 @@ func TestNew(t *testing.T) {
 	t.Log("GetData[REVERSE] Rank:", 0, "ID:", id, "Score:", score, "Extra:", extra)
 	id, score, extra = s.GetDataByRank(0, false)
 	t.Log("GetData[UNREVERSE] Rank:", 0, "ID:", id, "Score:", score, "Extra:", extra)
-	id, score, extra = s.GetDataByRank(9999, true)
+	_, _, extra = s.GetDataByRank(9999, true)
 	if extra != nil {
 		t.Error("GetDataByRank is not nil")
 	}
