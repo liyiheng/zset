@@ -2,6 +2,8 @@
 # zset
 Implementing sorted set in Redis with golang.
 
+TODO: key type int64 to string
+
 ## Installation
 ```bash
 go get -u github.com/XanthusL/zset
