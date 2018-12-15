@@ -525,7 +525,7 @@ func (z *SortedSet) Set(score float64, key int64, dat interface{}) {
 
 // Delete removes an element from the SortedSet
 // by its key.
-func (z *SortedSet) Delete(key int64)(ok bool) {
+func (z *SortedSet) Delete(key int64) (ok bool) {
 	v, ok := z.dict[key]
 	if ok {
 		z.zsl.zslDelete(v.score, key)
@@ -539,7 +539,7 @@ func (z *SortedSet) Delete(key int64)(ok bool) {
 // found by the parameter key.
 // The parameter reverse determines the rank is descent or ascend，
 // true means descend and false means ascend.
-func (z *SortedSet) GetRank(key int64, reverse bool) (rank int64, score float64,data interface{}) {
+func (z *SortedSet) GetRank(key int64, reverse bool) (rank int64, score float64, data interface{}) {
 	v, ok := z.dict[key]
 	if !ok {
 		return -1, 0, nil
@@ -555,7 +555,7 @@ func (z *SortedSet) GetRank(key int64, reverse bool) (rank int64, score float64,
 }
 
 // GetData returns data stored in the map by its key
-func (z *SortedSet) GetData(key int64) (data interface{},ok bool) {
+func (z *SortedSet) GetData(key int64) (data interface{}, ok bool) {
 	o, ok := z.dict[key]
 	if !ok {
 		return nil, false
@@ -566,7 +566,7 @@ func (z *SortedSet) GetData(key int64) (data interface{},ok bool) {
 // GetDataByRank returns the id,score and extra data of an element which
 // found by position in the rank.
 // The parameter rank is the position, reverse says if in the descend rank.
-func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (key int64,score float64,data interface{}) {
+func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (key int64, score float64, data interface{}) {
 	if rank < 0 || rank > z.zsl.length {
 		return 0, 0, nil
 	}
