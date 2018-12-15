@@ -31,7 +31,7 @@ import (
  *	zslDeleteRangeByRank
  *	给定一个排位范围， 删除跳跃表中所有在这个范围之内的节点。	O(N) ， N 为被删除节点数量。
  */
-const _ZSKIPLIST_MAXLEVEL = 32
+const zSkiplistMaxlevel = 32
 
 /*
  * 1. Port redis zset to golang
@@ -99,11 +99,11 @@ func zslCreateNode(level int16, score float64, id int64) *skipListNode {
 func zslCreate() *skipList {
 	return &skipList{
 		level:  1,
-		header: zslCreateNode(_ZSKIPLIST_MAXLEVEL, 0, 0),
+		header: zslCreateNode(zSkiplistMaxlevel, 0, 0),
 	}
 }
 
-const _ZSKIPLIST_P = 0.25 /* Skiplist P = 1/4 */
+const zSkiplistP = 0.25 /* Skiplist P = 1/4 */
 
 /* Returns a random level for the new skiplist node we are going to create.
  * The return value of this function is between 1 and _ZSKIPLIST_MAXLEVEL
@@ -111,21 +111,21 @@ const _ZSKIPLIST_P = 0.25 /* Skiplist P = 1/4 */
  * levels are less likely to be returned. */
 func randomLevel() int16 {
 	level := int16(1)
-	for float32(rand.Int31()&0xFFFF) < (_ZSKIPLIST_P * 0xFFFF) {
-		level += 1
+	for float32(rand.Int31()&0xFFFF) < (zSkiplistP * 0xFFFF) {
+		level++
 	}
-	if level < _ZSKIPLIST_MAXLEVEL {
+	if level < zSkiplistMaxlevel {
 		return level
 	}
-	return _ZSKIPLIST_MAXLEVEL
+	return zSkiplistMaxlevel
 }
 
 /* zslInsert a new node in the skiplist. Assumes the element does not already
  * exist (up to the caller to enforce that). The skiplist takes ownership
  * of the passed SDS string 'obj'. */
 func (zsl *skipList) zslInsert(score float64, id int64) *skipListNode {
-	update := make([]*skipListNode, _ZSKIPLIST_MAXLEVEL)
-	rank := make([]uint64, _ZSKIPLIST_MAXLEVEL)
+	update := make([]*skipListNode, zSkiplistMaxlevel)
+	rank := make([]uint64, zSkiplistMaxlevel)
 	x := zsl.header
 	for i := zsl.level - 1; i >= 0; i-- {
 		/* store rank that is crossed to reach the insert position */
@@ -194,7 +194,7 @@ func (zsl *skipList) zslDeleteNode(x *skipListNode, update []*skipListNode) {
 			update[i].level[i].span += x.level[i].span - 1
 			update[i].level[i].forward = x.level[i].forward
 		} else {
-			update[i].level[i].span -= 1
+			update[i].level[i].span--
 		}
 	}
 	if x.level[0].forward != nil {
@@ -217,7 +217,7 @@ func (zsl *skipList) zslDeleteNode(x *skipListNode, update []*skipListNode) {
  * so that it is possible for the caller to reuse the node (including the
  * referenced SDS string at node->obj). */
 func (zsl *skipList) zslDelete(score float64, id int64) int {
-	update := make([]*skipListNode, _ZSKIPLIST_MAXLEVEL)
+	update := make([]*skipListNode, zSkiplistMaxlevel)
 	x := zsl.header
 	for i := zsl.level - 1; i >= 0; i-- {
 		for x.level[i].forward != nil &&
@@ -329,11 +329,11 @@ func (zsl *skipList) zslLastInRange(ran *zrangespec) *skipListNode {
  * sorted set, in order to remove the elements from the hash table too. */
 func (zsl *skipList) zslDeleteRangeByScore(ran *zrangespec, dict map[int64]*obj) uint64 {
 	removed := uint64(0)
-	update := make([]*skipListNode, _ZSKIPLIST_MAXLEVEL)
+	update := make([]*skipListNode, zSkiplistMaxlevel)
 	x := zsl.header
 	for i := zsl.level - 1; i >= 0; i-- {
-		condition := false
 		for x.level[i].forward != nil {
+			var condition bool
 			if ran.minex != 0 {
 				condition = x.level[i].forward.score <= ran.min
 			} else {
@@ -352,7 +352,7 @@ func (zsl *skipList) zslDeleteRangeByScore(ran *zrangespec, dict map[int64]*obj)
 
 	/* Delete nodes while in range. */
 	for x != nil {
-		condition := false
+		var condition bool
 		if ran.maxex != 0 {
 			condition = x.score < ran.max
 		} else {
@@ -376,7 +376,7 @@ func (zsl *skipList) zslDeleteRangeByScore(ran *zrangespec, dict map[int64]*obj)
 func (zsl *skipList) zslDeleteRangeByLex(ran *zlexrangespec, dict map[int64]*obj) uint64 {
 	removed := uint64(0)
 
-	update := make([]*skipListNode, _ZSKIPLIST_MAXLEVEL)
+	update := make([]*skipListNode, zSkiplistMaxlevel)
 	x := zsl.header
 	for i := zsl.level - 1; i >= 0; i-- {
 		for x.level[i].forward != nil && !zslLexValueGteMin(x.level[i].forward.objID, ran) {
@@ -425,7 +425,7 @@ func zslLexValueLteMax(id int64, spec *zlexrangespec) bool {
 /* Delete all the elements with rank between start and end from the skiplist.
  * Start and end are inclusive. Note that start and end need to be 1-based */
 func (zsl *skipList) zslDeleteRangeByRank(start, end uint64, dict map[int64]*obj) uint64 {
-	update := make([]*skipListNode, _ZSKIPLIST_MAXLEVEL)
+	update := make([]*skipListNode, zSkiplistMaxlevel)
 	var traversed, removed uint64
 
 	x := zsl.header
