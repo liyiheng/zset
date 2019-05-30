@@ -523,6 +523,21 @@ func (z *SortedSet) Set(score float64, key int64, dat interface{}) {
 	}
 }
 
+// IncrBy ..
+func (z *SortedSet) IncrBy(score float64, key int64) (float64, interface{}) {
+	v, ok := z.dict[key]
+	if !ok {
+		// use negative infinity ?
+		return 0, nil
+	}
+	if score != 0 {
+		z.zsl.zslDelete(v.score, key)
+		v.score += score
+		z.zsl.zslInsert(v.score, key)
+	}
+	return v.score, v.attachment
+}
+
 // Delete removes an element from the SortedSet
 // by its key.
 func (z *SortedSet) Delete(key int64) (ok bool) {

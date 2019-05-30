@@ -59,6 +59,28 @@ func TestNew(t *testing.T) {
 	}
 	d, ok := s.GetData(1004)
 	t.Log(d, ok)
+	curScore, dat := s.IncrBy(666, 1004)
+	t.Log(curScore, dat)
+}
+
+func TestIncrBy(t *testing.T) {
+	z := New()
+	for i := 1000; i < 1100; i++ {
+		z.Set(float64(i), int64(i), "Hello world")
+	}
+	rank, score, _ := z.GetRank(1050, false)
+	curScore, _ := z.IncrBy(1.5, 1050)
+	if score+1.5 != curScore {
+		t.Error(score, curScore)
+	}
+	r2, score2, _ := z.GetRank(1050, false)
+	if score2 != curScore {
+		t.Fail()
+	}
+	if r2 != rank+1 {
+		t.Error(r2, rank)
+	}
+
 }
 
 func BenchmarkSortedSet_Add(b *testing.B) {
