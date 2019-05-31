@@ -34,15 +34,26 @@ dat, ok := s.GetData(1001)
 
 // delete data by id
 s.Delete(1001)
+
+// Increase score
+s.IncrBy(5.0, 1001)
 ```
 
 ## Benchmark
 
+```text
+ OS: Arch Linux 
+ Kernel: x86_64 Linux 5.1.5-arch1-2-ARCH
+ CPU: Intel Core i7-8750H @ 12x 4.1GHz [46.0°C]
+ RAM: 3295MiB / 7821MiB
+```
+
 ```bash
 go test -test.bench=".*"
-BenchmarkSortedSet_Add-4                 1000000              4121 ns/op
-BenchmarkSortedSet_GetRank-4              500000              3592 ns/op
-BenchmarkSortedSet_GetDataByRank-4       2000000               667 ns/op
+goos: linux
+goarch: amd64
+BenchmarkSortedSet_Add-12              	 1000000	      3050 ns/op
+BenchmarkSortedSet_GetRank-12          	  500000	      2963 ns/op
+BenchmarkSortedSet_GetDataByRank-12    	 2000000	       620 ns/op
 PASS
-ok      zset    11.365s
 ```
