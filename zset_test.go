@@ -83,6 +83,32 @@ func TestIncrBy(t *testing.T) {
 
 }
 
+func TestRange(t *testing.T) {
+	z := New()
+	z.Set(1.0, 1001, nil)
+	z.Set(2.0, 1002, nil)
+	z.Set(3.0, 1003, nil)
+	z.Set(4.0, 1004, nil)
+	z.Set(5.0, 1005, nil)
+	z.Set(6.0, 1006, nil)
+
+	ids := make([]int64, 0, 6)
+	z.Range(0, -1, func(score float64, k int64, _ interface{}) {
+		ids = append(ids, k)
+		t.Log(score, k)
+	})
+	if ids[0] != 1001 ||
+		ids[1] != 1002 ||
+		ids[2] != 1003 ||
+		ids[3] != 1004 {
+		t.Fail()
+	}
+	z.RevRange(1, 3, func(score float64, k int64, _ interface{}) {
+		t.Log(score, k)
+	})
+
+}
+
 func BenchmarkSortedSet_Add(b *testing.B) {
 	b.StopTimer()
 	// data initialization

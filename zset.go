@@ -600,3 +600,58 @@ func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (key int64, score fl
 	}
 	return dat.key, dat.score, dat.attachment
 }
+
+// Range implements ZRANGE
+func (z *SortedSet) Range(start, end int64, f func(float64, int64, interface{})) {
+	z.commonRange(start, end, false, f)
+}
+
+// RevRange implements ZREVRANGE
+func (z *SortedSet) RevRange(start, end int64, f func(float64, int64, interface{})) {
+	z.commonRange(start, end, true, f)
+}
+
+func (z *SortedSet) commonRange(start, end int64, reverse bool, f func(float64, int64, interface{})) {
+	l := z.zsl.length
+	if start < 0 {
+		start += l
+		if start < 0 {
+			start = 0
+		}
+	}
+	if end < 0 {
+		end += l
+	}
+
+	if start > end || start >= l {
+		return
+	}
+	if end >= l {
+		end = l - 1
+	}
+	span := (end - start) + 1
+
+	var node *skipListNode
+	if reverse {
+		node = z.zsl.tail
+		if start > 0 {
+			node = z.zsl.zslGetElementByRank(uint64(l - start))
+		}
+	} else {
+		node = z.zsl.header.level[0].forward
+		if start > 0 {
+			node = z.zsl.zslGetElementByRank(uint64(start + 1))
+		}
+	}
+	for span > 0 {
+		span--
+		k := node.objID
+		s := node.score
+		f(s, k, z.dict[k].attachment)
+		if reverse {
+			node = node.backward
+		} else {
+			node = node.level[0].forward
+		}
+	}
+}
