@@ -4,62 +4,31 @@ import (
 	"math/rand"
 )
 
-/*================================== Redis skipList APIs =====================================
- *	zslCreate
- *	创建一个新的跳跃表。	O(1)
- *	zslFree
- *	释放给定跳跃表，以及表中包含的所有节点。	O(N) ， N 为跳跃表的长度。
- *	zslInsert
- *	将包含给定成员和分值的新节点添加到跳跃表中。	平均 O(\log N) ，最坏 O(N) ， N 为跳跃表长度。
- *	zslDelete
- *	删除跳跃表中包含给定成员和分值的节点。	平均 O(\log N) ，最坏 O(N) ， N 为跳跃表长度。
- *	zslGetRank
- *	返回包含给定成员和分值的节点在跳跃表中的排位。	平均 O(\log N) ，最坏 O(N) ， N 为跳跃表长度。
- *	zslGetElementByRank
- *	返回跳跃表在给定排位上的节点。	平均 O(\log N) ，最坏 O(N) ， N 为跳跃表长度。
- *	zslIsInRange
- *	给定一个分值范围（range），
- *	比如 0 到 15 ， 20 到 28 ，诸如此类，
- *	如果给定的分值范围包含在跳跃表的分值范围之内， 那么返回 1 ，否则返回 0 。
- *	通过跳跃表的表头节点和表尾节点， 这个检测可以用 O(1) 复杂度完成。
- *	zslFirstInRange
- *	给定一个分值范围， 返回跳跃表中第一个符合这个范围的节点。	平均 O(\log N) ，最坏 O(N) 。 N 为跳跃表长度。
- *	zslLastInRange
- *	给定一个分值范围， 返回跳跃表中最后一个符合这个范围的节点。	平均 O(\log N) ，最坏 O(N) 。 N 为跳跃表长度。
- *	zslDeleteRangeByScore
- *	给定一个分值范围， 删除跳跃表中所有在这个范围之内的节点。	O(N) ， N 为被删除节点数量。
- *	zslDeleteRangeByRank
- *	给定一个排位范围， 删除跳跃表中所有在这个范围之内的节点。	O(N) ， N 为被删除节点数量。
- */
 const zSkiplistMaxlevel = 32
 
-/*
- * 1. Port redis zset to golang
- * 2. Refactor
- */
 type (
 	skipListLevel struct {
-		forward *skipListNode // 前进指针
-		span    uint64        // 跨度
+		forward *skipListNode
+		span    uint64
 	}
 
 	skipListNode struct {
-		objID    int64            // 成员id
-		score    float64          // 分值
-		backward *skipListNode    // 后退指针
-		level    []*skipListLevel // 层
+		objID    int64
+		score    float64
+		backward *skipListNode
+		level    []*skipListLevel
 	}
 	obj struct {
-		key        int64       // 成员id
-		attachment interface{} // 自定义数据
-		score      float64     // 分值
+		key        int64
+		attachment interface{}
+		score      float64
 	}
 
 	skipList struct {
-		header *skipListNode // 头节点
-		tail   *skipListNode // 尾节点
-		length int64         // 节点个数
-		level  int16         // 层数最多的节点的层数
+		header *skipListNode
+		tail   *skipListNode
+		length int64
+		level  int16
 	}
 	// SortedSet is the final exported sorted set we can use
 	SortedSet struct {
@@ -72,17 +41,14 @@ type (
 		minex int32
 		maxex int32
 	}
-	/* Struct to hold an inclusive/exclusive range spec by lexicographic comparison. */
 	zlexrangespec struct {
 		minKey int64
 		maxKey int64
-		minex  int /* are min or max exclusive? */
-		maxex  int /* are min or max exclusive? */
+		minex  int
+		maxex  int
 	}
 )
 
-/* Create a skiplist node with the specified number of levels.
- * The SDS string 'obj' is referenced by the node after the call. */
 func zslCreateNode(level int16, score float64, id int64) *skipListNode {
 	n := &skipListNode{
 		score: score,
@@ -95,7 +61,6 @@ func zslCreateNode(level int16, score float64, id int64) *skipListNode {
 	return n
 }
 
-/* Create a new skiplist. */
 func zslCreate() *skipList {
 	return &skipList{
 		level:  1,
