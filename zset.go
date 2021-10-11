@@ -573,6 +573,15 @@ func (z *SortedSet) GetData(key int64) (data interface{}, ok bool) {
 	return o.attachment, true
 }
 
+// GetScore implements ZScore
+func (z *SortedSet) GetScore(key int64) (score float64, ok bool) {
+	o, ok := z.dict[key]
+	if !ok {
+		return 0, false
+	}
+	return o.score, true
+}
+
 // GetDataByRank returns the id,score and extra data of an element which
 // found by position in the rank.
 // The parameter rank is the position, reverse says if in the descend rank.
