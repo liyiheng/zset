@@ -23,33 +23,30 @@ func TestNew(t *testing.T) {
 	s.Set(44, 1006)
 	s.Set(44, 1001)
 
-	rank, score, extra := s.GetRank(1004, false)
+	rank, score := s.GetRank(1004, false)
 	if rank == 5 {
-		t.Log("Key:", 1004, "Rank:", rank, "Score:", score, "Extra:", extra)
+		t.Log("Key:", 1004, "Rank:", rank, "Score:", score)
 	} else {
-		t.Error("Key:", 1004, "Rank:", rank, "Score:", score, "Extra:", extra)
+		t.Error("Key:", 1004, "Rank:", rank, "Score:", score)
 	}
-	rank, score, extra = s.GetRank(1001, false)
+	rank, score = s.GetRank(1001, false)
 	if rank == 0 {
-		t.Log("Key:", 1001, "Rank:", rank, "Score:", score, "Extra:", extra)
+		t.Log("Key:", 1001, "Rank:", rank, "Score:", score)
 	} else {
-		t.Error("Key:", 1001, "Rank:", rank, "Score:", score, "Extra:", extra)
+		t.Error("Key:", 1001, "Rank:", rank, "Score:", score)
 	}
-	rank, score, extra = s.GetRank(-1, false)
+	rank, score = s.GetRank(-1, false)
 	if rank == -1 {
-		t.Log("Key:", -1, "Rank:", rank, "Score:", score, "Extra:", extra)
+		t.Log("Key:", -1, "Rank:", rank, "Score:", score)
 	} else {
-		t.Error("Key:", -1, "Rank:", rank, "Score:", score, "Extra:", extra)
+		t.Error("Key:", -1, "Rank:", rank, "Score:", score)
 	}
 
-	id, score, extra := s.GetDataByRank(0, true)
-	t.Log("GetData[REVERSE] Rank:", 0, "ID:", id, "Score:", score, "Extra:", extra)
-	id, score, extra = s.GetDataByRank(0, false)
-	t.Log("GetData[UNREVERSE] Rank:", 0, "ID:", id, "Score:", score, "Extra:", extra)
-	_, _, extra = s.GetDataByRank(9999, true)
-	if extra != nil {
-		t.Error("GetDataByRank is not nil")
-	}
+	id, score := s.GetDataByRank(0, true)
+	t.Log("GetData[REVERSE] Rank:", 0, "ID:", id, "Score:", score)
+	id, score = s.GetDataByRank(0, false)
+	t.Log("GetData[UNREVERSE] Rank:", 0, "ID:", id, "Score:", score)
+	_, _ = s.GetDataByRank(9999, true)
 	if s.Length() != 6 {
 		t.Error("Rank Data Size is wrong")
 	}
@@ -66,12 +63,12 @@ func TestIncrBy(t *testing.T) {
 	for i := 1000; i < 1100; i++ {
 		z.Set(float64(i), int64(i))
 	}
-	rank, score, _ := z.GetRank(1050, false)
+	rank, score := z.GetRank(1050, false)
 	curScore := z.IncrBy(1.5, 1050)
 	if score+1.5 != curScore {
 		t.Error(score, curScore)
 	}
-	r2, score2, _ := z.GetRank(1050, false)
+	r2, score2 := z.GetRank(1050, false)
 	if score2 != curScore {
 		t.Fail()
 	}

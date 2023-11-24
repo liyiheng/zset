@@ -16,23 +16,20 @@ Just implement it yourself if needed.
 ```go
 s := zset.New()
 // add data
-s.Set(66, 1001, "test1")
-s.Set(77, 1002, "test2")
-s.Set(88, 1003, "test3")
-s.Set(100, 1004, "liyiheng")
-s.Set(99, 1005, "test4")
-s.Set(44, 1006, "test5")
+s.Set(66, 1001)
+s.Set(77, 1002)
+s.Set(88, 1003)
+s.Set(100, 1004)
+s.Set(99, 1005)
+s.Set(44, 1006)
 // update data
-s.Set(44, 1001, "test1")
+s.Set(44, 1001)
 
-// get rank by id
-rank, score, extra := s.GetRank(1004, false)
+// get rank by key
+rank, score := s.GetRank(1004, false)
 // get data by rank
-id, score, extra := s.GetDataByRank(0, true)
-// get data by id
-dat, ok := s.GetData(1001)
+id, score := s.GetDataByRank(0, true)
 
-// delete data by id
 s.Delete(1001)
 
 // Increase score
@@ -40,13 +37,13 @@ s.IncrBy(5.0, 1001)
 
 // ZRANGE, ASC
 five := make([]int64, 0, 5)
-s.Range(0, 5, func(score float64, k int64, _ interface{}) {
+s.Range(0, 5, func(score float64, k int64) {
 	five = append(five, k)
 })
 
 // ZREVRANGE, DESC
 all := make([]int64, 0)
-s.RevRange(0, -1, func(score float64, k int64, _ interface{}) {
+s.RevRange(0, -1, func(score float64, k int64) {
 	all = append(all, k)
 })
 

@@ -49,9 +49,7 @@ type (
 		level    []*skipListLevel
 	}
 	obj struct {
-		key        int64
-		attachment interface{}
-		score      float64
+		score float64
 	}
 
 	skipList struct {
@@ -62,7 +60,7 @@ type (
 	}
 	// SortedSet is the final exported sorted set we can use
 	SortedSet struct {
-		dict map[int64]*obj
+		dict map[int64]float64
 		zsl  *skipList
 	}
 	zrangespec struct {
@@ -492,7 +490,7 @@ func (zsl *skipList) zslGetElementByRank(rank uint64) *skipListNode {
 // New creates a new SortedSet and return its pointer
 func New() *SortedSet {
 	s := &SortedSet{
-		dict: make(map[int64]*obj),
+		dict: make(map[int64]float64),
 		zsl:  zslCreate(),
 	}
 	return s
@@ -506,11 +504,11 @@ func (z *SortedSet) Length() int64 {
 // Set is used to add or update an element
 func (z *SortedSet) Set(score float64, key int64) {
 	v, ok := z.dict[key]
-	z.dict[key] = &obj{attachment: nil, key: key, score: score}
+	z.dict[key] = score
 	if ok {
 		/* Remove and re-insert when score changes. */
-		if score != v.score {
-			z.zsl.zslDelete(v.score, key)
+		if score != v {
+			z.zsl.zslDelete(v, key)
 			z.zsl.zslInsert(score, key)
 		}
 	} else {
@@ -520,25 +518,25 @@ func (z *SortedSet) Set(score float64, key int64) {
 
 // IncrBy ..
 func (z *SortedSet) IncrBy(score float64, key int64) float64 {
-	v, ok := z.dict[key]
+	oldScore, ok := z.dict[key]
 	if !ok {
 		z.Set(score, key)
 		return score
 	}
 	if score != 0 {
-		z.zsl.zslDelete(v.score, key)
-		v.score += score
-		z.zsl.zslInsert(v.score, key)
+		z.zsl.zslDelete(oldScore, key)
+		z.dict[key] += score
+		z.zsl.zslInsert(z.dict[key], key)
 	}
-	return v.score
+	return z.dict[key]
 }
 
 // Delete removes an element from the SortedSet
 // by its key.
 func (z *SortedSet) Delete(key int64) (ok bool) {
-	v, ok := z.dict[key]
+	score, ok := z.dict[key]
 	if ok {
-		z.zsl.zslDelete(v.score, key)
+		z.zsl.zslDelete(score, key)
 		delete(z.dict, key)
 		return true
 	}
@@ -549,36 +547,33 @@ func (z *SortedSet) Delete(key int64) (ok bool) {
 // found by the parameter key.
 // The parameter reverse determines the rank is descent or ascend，
 // true means descend and false means ascend.
-func (z *SortedSet) GetRank(key int64, reverse bool) (rank int64, score float64, data interface{}) {
-	v, ok := z.dict[key]
+func (z *SortedSet) GetRank(key int64, reverse bool) (rank int64, score float64) {
+	score, ok := z.dict[key]
 	if !ok {
-		return -1, 0, nil
+		return -1, 0
 	}
-	r := z.zsl.zslGetRank(v.score, key)
+	r := z.zsl.zslGetRank(score, key)
 	if reverse {
 		r = z.zsl.length - r
 	} else {
 		r--
 	}
-	return int64(r), v.score, v.attachment
+	return int64(r), score
 
 }
 
 // GetScore implements ZScore
 func (z *SortedSet) GetScore(key int64) (score float64, ok bool) {
-	o, ok := z.dict[key]
-	if !ok {
-		return 0, false
-	}
-	return o.score, true
+	score, ok = z.dict[key]
+	return score, ok
 }
 
 // GetDataByRank returns the id,score and extra data of an element which
 // found by position in the rank.
 // The parameter rank is the position, reverse says if in the descend rank.
-func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (key int64, score float64, data interface{}) {
+func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (key int64, score float64) {
 	if rank < 0 || rank > z.zsl.length {
-		return 0, 0, nil
+		return 0, 0
 	}
 	if reverse {
 		rank = z.zsl.length - rank
@@ -587,13 +582,13 @@ func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (key int64, score fl
 	}
 	n := z.zsl.zslGetElementByRank(uint64(rank))
 	if n == nil {
-		return 0, 0, nil
+		return 0, 0
 	}
-	dat, _ := z.dict[n.objID]
-	if dat == nil {
-		return 0, 0, nil
+	score, ok := z.dict[n.objID]
+	if !ok {
+		return 0, 0
 	}
-	return dat.key, dat.score, dat.attachment
+	return n.objID, score
 }
 
 // Range implements ZRANGE
