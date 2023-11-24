@@ -504,9 +504,9 @@ func (z *SortedSet) Length() int64 {
 }
 
 // Set is used to add or update an element
-func (z *SortedSet) Set(score float64, key int64, dat interface{}) {
+func (z *SortedSet) Set(score float64, key int64) {
 	v, ok := z.dict[key]
-	z.dict[key] = &obj{attachment: dat, key: key, score: score}
+	z.dict[key] = &obj{attachment: nil, key: key, score: score}
 	if ok {
 		/* Remove and re-insert when score changes. */
 		if score != v.score {
@@ -519,18 +519,18 @@ func (z *SortedSet) Set(score float64, key int64, dat interface{}) {
 }
 
 // IncrBy ..
-func (z *SortedSet) IncrBy(score float64, key int64) (float64, interface{}) {
+func (z *SortedSet) IncrBy(score float64, key int64) float64 {
 	v, ok := z.dict[key]
 	if !ok {
-		// use negative infinity ?
-		return 0, nil
+		z.Set(score, key)
+		return score
 	}
 	if score != 0 {
 		z.zsl.zslDelete(v.score, key)
 		v.score += score
 		z.zsl.zslInsert(v.score, key)
 	}
-	return v.score, v.attachment
+	return v.score
 }
 
 // Delete removes an element from the SortedSet
@@ -562,15 +562,6 @@ func (z *SortedSet) GetRank(key int64, reverse bool) (rank int64, score float64,
 	}
 	return int64(r), v.score, v.attachment
 
-}
-
-// GetData returns data stored in the map by its key
-func (z *SortedSet) GetData(key int64) (data interface{}, ok bool) {
-	o, ok := z.dict[key]
-	if !ok {
-		return nil, false
-	}
-	return o.attachment, true
 }
 
 // GetScore implements ZScore
@@ -606,16 +597,16 @@ func (z *SortedSet) GetDataByRank(rank int64, reverse bool) (key int64, score fl
 }
 
 // Range implements ZRANGE
-func (z *SortedSet) Range(start, end int64, f func(float64, int64, interface{})) {
+func (z *SortedSet) Range(start, end int64, f func(float64, int64)) {
 	z.commonRange(start, end, false, f)
 }
 
 // RevRange implements ZREVRANGE
-func (z *SortedSet) RevRange(start, end int64, f func(float64, int64, interface{})) {
+func (z *SortedSet) RevRange(start, end int64, f func(float64, int64)) {
 	z.commonRange(start, end, true, f)
 }
 
-func (z *SortedSet) commonRange(start, end int64, reverse bool, f func(float64, int64, interface{})) {
+func (z *SortedSet) commonRange(start, end int64, reverse bool, f func(float64, int64)) {
 	l := z.zsl.length
 	if start < 0 {
 		start += l
@@ -651,7 +642,7 @@ func (z *SortedSet) commonRange(start, end int64, reverse bool, f func(float64, 
 		span--
 		k := node.objID
 		s := node.score
-		f(s, k, z.dict[k].attachment)
+		f(s, k)
 		if reverse {
 			node = node.backward
 		} else {

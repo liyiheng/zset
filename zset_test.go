@@ -15,13 +15,13 @@ func TestNew(t *testing.T) {
 	if s == nil {
 		t.Failed()
 	}
-	s.Set(66, 1001, "test1")
-	s.Set(77, 1002, "test2")
-	s.Set(88, 1003, "test3")
-	s.Set(100, 1004, "liyiheng")
-	s.Set(99, 1005, "test4")
-	s.Set(44, 1006, "test5")
-	s.Set(44, 1001, "test1")
+	s.Set(66, 1001)
+	s.Set(77, 1002)
+	s.Set(88, 1003)
+	s.Set(100, 1004)
+	s.Set(99, 1005)
+	s.Set(44, 1006)
+	s.Set(44, 1001)
 
 	rank, score, extra := s.GetRank(1004, false)
 	if rank == 5 {
@@ -57,19 +57,17 @@ func TestNew(t *testing.T) {
 	if s.Length() != 5 {
 		t.Error("Rank Data Size is wrong")
 	}
-	d, ok := s.GetData(1004)
-	t.Log(d, ok)
-	curScore, dat := s.IncrBy(666, 1004)
-	t.Log(curScore, dat)
+	curScore := s.IncrBy(666, 1004)
+	t.Log(curScore)
 }
 
 func TestIncrBy(t *testing.T) {
 	z := New()
 	for i := 1000; i < 1100; i++ {
-		z.Set(float64(i), int64(i), "Hello world")
+		z.Set(float64(i), int64(i))
 	}
 	rank, score, _ := z.GetRank(1050, false)
-	curScore, _ := z.IncrBy(1.5, 1050)
+	curScore := z.IncrBy(1.5, 1050)
 	if score+1.5 != curScore {
 		t.Error(score, curScore)
 	}
@@ -85,15 +83,15 @@ func TestIncrBy(t *testing.T) {
 
 func TestRange(t *testing.T) {
 	z := New()
-	z.Set(1.0, 1001, nil)
-	z.Set(2.0, 1002, nil)
-	z.Set(3.0, 1003, nil)
-	z.Set(4.0, 1004, nil)
-	z.Set(5.0, 1005, nil)
-	z.Set(6.0, 1006, nil)
+	z.Set(1.0, 1001)
+	z.Set(2.0, 1002)
+	z.Set(3.0, 1003)
+	z.Set(4.0, 1004)
+	z.Set(5.0, 1005)
+	z.Set(6.0, 1006)
 
 	ids := make([]int64, 0, 6)
-	z.Range(0, -1, func(score float64, k int64, _ interface{}) {
+	z.Range(0, -1, func(score float64, k int64) {
 		ids = append(ids, k)
 		t.Log(score, k)
 	})
@@ -103,7 +101,7 @@ func TestRange(t *testing.T) {
 		ids[3] != 1004 {
 		t.Fail()
 	}
-	z.RevRange(1, 3, func(score float64, k int64, _ interface{}) {
+	z.RevRange(1, 3, func(score float64, k int64) {
 		t.Log(score, k)
 	})
 
@@ -124,7 +122,7 @@ func BenchmarkSortedSet_Add(b *testing.B) {
 
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		s.Set(scores[i], IDs[i], nil)
+		s.Set(scores[i], IDs[i])
 	}
 }
 
