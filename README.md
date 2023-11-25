@@ -2,9 +2,6 @@
 # zset
 Implementing sorted set in Redis with golang.
 
-## TODO
-Key type int64 to string, or just waiting for generics.
-
 ## Installation
 ```bash
 go get -u github.com/liyiheng/zset
@@ -14,7 +11,7 @@ go get -u github.com/liyiheng/zset
 Removed RWLock in the SortedSet. 
 Just implement it yourself if needed.
 ```go
-s := zset.New()
+s := zset.New[int64]()
 // add data
 s.Set(66, 1001)
 s.Set(77, 1002)
