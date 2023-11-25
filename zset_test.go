@@ -5,10 +5,10 @@ import (
 	"testing"
 )
 
-var s *SortedSet
+var s *SortedSet[int64]
 
 func init() {
-	s = New()
+	s = New[int64]()
 }
 
 func TestNew(t *testing.T) {
@@ -59,7 +59,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestIncrBy(t *testing.T) {
-	z := New()
+	z := New[int64]()
 	for i := 1000; i < 1100; i++ {
 		z.Set(float64(i), int64(i))
 	}
@@ -79,7 +79,7 @@ func TestIncrBy(t *testing.T) {
 }
 
 func TestRange(t *testing.T) {
-	z := New()
+	z := New[int64]()
 	z.Set(1.0, 1001)
 	z.Set(2.0, 1002)
 	z.Set(3.0, 1003)
