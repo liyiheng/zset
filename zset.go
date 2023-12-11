@@ -31,7 +31,7 @@
 package zset
 
 import (
-	"cmp"
+	"github.com/liyiheng/zset/cmp"
 	"math/rand"
 )
 
