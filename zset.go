@@ -31,8 +31,10 @@
 package zset
 
 import (
-	"github.com/liyiheng/zset/cmp"
 	"math/rand"
+	"sync"
+
+	"github.com/liyiheng/zset/cmp"
 )
 
 const zSkiplistMaxlevel = 32
@@ -67,6 +69,7 @@ type (
 	SortedSet[K Key] struct {
 		dict map[K]float64
 		zsl  *skipList[K]
+		lock sync.RWMutex
 	}
 	zrangespec struct {
 		min   float64
@@ -497,17 +500,22 @@ func New[K Key]() *SortedSet[K] {
 	s := &SortedSet[K]{
 		dict: make(map[K]float64),
 		zsl:  zslCreate[K](),
+		lock: sync.RWMutex{},
 	}
 	return s
 }
 
 // Length returns counts of elements
 func (z *SortedSet[K]) Length() int64 {
+	z.lock.RLock()
+	defer z.lock.RUnlock()
 	return z.zsl.length
 }
 
 // Set is used to add or update an element
 func (z *SortedSet[K]) Set(score float64, key K) {
+	z.lock.Lock()
+	defer z.lock.Unlock()
 	v, ok := z.dict[key]
 	z.dict[key] = score
 	if ok {
@@ -523,6 +531,8 @@ func (z *SortedSet[K]) Set(score float64, key K) {
 
 // IncrBy ..
 func (z *SortedSet[K]) IncrBy(score float64, key K) float64 {
+	z.lock.Lock()
+	defer z.lock.Unlock()
 	oldScore, ok := z.dict[key]
 	if !ok {
 		z.Set(score, key)
@@ -539,6 +549,8 @@ func (z *SortedSet[K]) IncrBy(score float64, key K) float64 {
 // Delete removes an element from the SortedSet
 // by its key.
 func (z *SortedSet[K]) Delete(key K) (ok bool) {
+	z.lock.Lock()
+	defer z.lock.Unlock()
 	score, ok := z.dict[key]
 	if ok {
 		z.zsl.zslDelete(score, key)
@@ -553,6 +565,8 @@ func (z *SortedSet[K]) Delete(key K) (ok bool) {
 // The parameter reverse determines the rank is descent or ascend，
 // true means descend and false means ascend.
 func (z *SortedSet[K]) GetRank(key K, reverse bool) (rank int64, score float64) {
+	z.lock.RLock()
+	defer z.lock.RUnlock()
 	score, ok := z.dict[key]
 	if !ok {
 		return -1, 0
@@ -569,6 +583,8 @@ func (z *SortedSet[K]) GetRank(key K, reverse bool) (rank int64, score float64) 
 
 // GetScore implements ZScore
 func (z *SortedSet[K]) GetScore(key K) (score float64, ok bool) {
+	z.lock.RLock()
+	defer z.lock.RUnlock()
 	score, ok = z.dict[key]
 	return score, ok
 }
@@ -577,6 +593,8 @@ func (z *SortedSet[K]) GetScore(key K) (score float64, ok bool) {
 // found by position in the rank.
 // The parameter rank is the position, reverse says if in the descend rank.
 func (z *SortedSet[K]) GetDataByRank(rank int64, reverse bool) (key K, score float64) {
+	z.lock.RLock()
+	defer z.lock.RUnlock()
 	if rank < 0 || rank > z.zsl.length {
 		return *new(K), 0
 	}
@@ -598,12 +616,28 @@ func (z *SortedSet[K]) GetDataByRank(rank int64, reverse bool) (key K, score flo
 
 // Range implements ZRANGE
 func (z *SortedSet[K]) Range(start, end int64, f func(float64, K)) {
-	z.commonRange(start, end, false, f)
+	z.snapshotRange(start, end, false, f)
 }
 
 // RevRange implements ZREVRANGE
 func (z *SortedSet[K]) RevRange(start, end int64, f func(float64, K)) {
-	z.commonRange(start, end, true, f)
+	z.snapshotRange(start, end, true, f)
+}
+
+func (z *SortedSet[K]) snapshotRange(start, end int64, reverse bool, f func(float64, K)) {
+	scores := make([]float64, 0)
+	keys := make([]K, 0)
+
+	z.lock.RLock()
+	z.commonRange(start, end, reverse, func(f float64, k K) {
+		scores = append(scores, f)
+		keys = append(keys, k)
+	})
+	z.lock.RUnlock()
+
+	for i, score := range scores {
+		f(score, keys[i])
+	}
 }
 
 func (z *SortedSet[K]) commonRange(start, end int64, reverse bool, f func(float64, K)) {
