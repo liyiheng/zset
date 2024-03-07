@@ -8,8 +8,7 @@ go get -u github.com/liyiheng/zset
 ```
 
 ## Usage
-Removed RWLock in the SortedSet. 
-Just implement it yourself if needed.
+
 ```go
 s := zset.New[int64]()
 // add data
